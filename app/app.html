@@ -1,0 +1,89 @@
+<head>
+    <title>Notifications Proof Of Concept</title>
+</head>
+
+
+
+<body>
+    <h1>Notifications Proof Of Concept</h1>
+
+
+
+    <div class="manage-user-account">
+        {{> loginButtons}}
+    </div>
+
+
+
+    {{#if currentUser}}
+        <div class="list-of-objects">
+            <h3>Number of objects: {{nbrObjects}}</h3>
+            <ul>
+                {{#each obj in objects}}
+                    <li>{{> mayFollowObject obj}}</li>
+                {{/each}}
+            </ul>
+        </div>
+
+
+
+        <div class="list-of-notifications">
+            <h3>Number of tracked objects: {{nbrTrackedObjects}}</h3>
+
+            <h4>notifications</h4>
+            <ul>
+                {{#each notif in notifications}}
+                    <li>{{> notification notif}}</li>
+                {{/each}}
+            </ul>
+
+
+            <h4>not notified because read at last version</h4>
+            <ul>
+                <li>
+                    {{#each notnotif in notNotifications}}
+                        <li>{{> notNotification notnotif}}</li>
+                    {{/each}}
+                </li>
+            </ul>
+        </div>
+    {{else}}
+        Please sign in.
+    {{/if}}
+</body>
+
+
+
+<template name="mayFollowObject">
+    <div class="may-follow-object">
+        <div class="object">
+            {{#with this.object}}
+                name: <span class="name">{{name}}</span>
+                version: <span class="version">{{version}}</span>
+            {{/with}}
+        </div>
+        <div class="actions">
+            <ul>
+                <li><button class="track">Track</button></li>
+                <li><button class="update">Update in my back</button></li>
+            </ul>
+        </div>
+    </div>
+</template>
+
+
+
+<template name="notification">
+    <div class="notification">
+        Object: <span class="name">{{object.name}}</span> has been updated since version <span class="version">{{tracker.version}}</span>.
+        <button class="read">read</button>
+    </div>
+</template>
+
+
+
+<template name="notNotification">
+    <div class="notNotification">
+        Object: <span class="name">{{object.name}}</span> is tracked but no notification is created because same version since last update: <span class="version">{{tracker.version}}</span>.
+    </div>
+</template>

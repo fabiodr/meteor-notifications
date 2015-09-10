@@ -1,0 +1,58 @@
+#+BEGIN_SRC yaml
+---
+name: notifications
+uuid: f796adc7-1874-4de7-80cc-c64f4c9c905b
+parent: null
+version: 4
+status: raw
+hash:
+  val: d5e7eb2bc7f98814274575b36d9619577bcf28fe77e8116baf2a6ff337865ce0
+  type: sha256
+owner:
+  name: Pierre-Henry Fröhring
+  email: pierrehenry.frohring@openmailbox.org
+use: []
+satisfy:
+  - name: notifications
+    uuid: c5e175fb-a637-4921-8d71-e242545bb0bc
+    hash:
+      val: d8c2da43a524543eab8b2ad7c532fa0a73a9c896b7b789364abe718fe92802df
+      type: sha256
+template:
+  version: 7
+  name: solution
+---
+#+END_SRC
+
+
+
+* Definitions
+
+
+
+* Informal spec:
+
+  - A user tracks an objects by storing an ~<id version _>~ for each of them.
+
+  - Whenever a user connects to the app, he subscribes to his notifications.
+      - For each tracked object, whenever an object version doesn't match, send user a notification.
+
+  - No notifications are actually stored in DB.
+
+
+
+* Formal spec
+
+  - (pro 89bf): ~trackedObject :≡ { _id: Mongo.ObjectID, collection: String, id: Mongo.ObjectID, version: [a-z0-9]{4}, updated: Boolean }~
+      - ~collection~: name of the collection where to find the object to follow
+      - ~id~: id of the object to follow
+      - ~version~: version of the object when user last "read" it.
+      - ~updated~: = (object.version ≠ trackedObject.version)
+
+  - (pro 6a0d) ~user.trackers :≡ [trackedObject]~ where ~user.trackers.length < maxTrackers~
+
+  - (pro fccf) ~notifications~ record set.  When a user subscribes to
+    ~notifications~, for each collection in ~user.trackers~ an ~observeChanges~ is
+    fired so that ~user.trackers.$.updated~ is updated.
+
+  - (sat c75b): (pro 89bf) ∧ (pro 6a0d) ∧ (pro fccf)

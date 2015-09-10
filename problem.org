@@ -1,0 +1,43 @@
+#+BEGIN_SRC yaml
+---
+name: notifications
+uuid: c5e175fb-a637-4921-8d71-e242545bb0bc
+parent: null
+version: 2
+status: raw
+hash:
+  val: d8c2da43a524543eab8b2ad7c532fa0a73a9c896b7b789364abe718fe92802df
+  type: sha256
+owner:
+  name: Pierre-Henry Fröhring
+  email: pierrehenry.frohring@openmailbox.org
+use: []
+satisfiability:
+  - c75b
+template:
+  version: 8
+  name: problem
+---
+#+END_SRC
+
+
+
+* Definitions
+
+
+
+* Users _expect_ to be notified on events.
+
+  - Scene: Tom logs into app X and asks a question on a post Carl made, but Carl
+    is not logged in.  4H later, Carl logs in, and, greatness, a +1 is here
+    begging him to check the question Tom asked him.
+
+  - Attempted approaches: null
+
+  - Interfering factors: null
+
+
+
+* Sufficient solution's conditions
+
+  - (sat c75b) Carl should receive notifications whenever an object he is tracking changes in his back.
