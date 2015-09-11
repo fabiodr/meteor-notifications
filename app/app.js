@@ -18,7 +18,7 @@
     const prop = R.prop;
 
 
-
+    // (def 15c7)
     const versionPattern = Match.Where(x => isValid(x, String));
 
 
@@ -59,15 +59,13 @@
 
 
 
-    const collections =
-              {
-                  objects
-              };
+    const collections = { objects };
 
 
 
     Meteor.methods(
         {
+            // (def ac42)
             'addTracker': function (tracker) {
                 const userId = this.userId;
                 check(tracker, trackedObjectPattern);
@@ -75,12 +73,14 @@
                 return 'Tracker added!';
             }
 
+            // (def ab6f)
             , 'updateObjectVersion': function (_id, version) {
                 check(_id, Mongo.ObjectID);
                 check(version, versionPattern);
                 objects.update({ _id }, { '$set': { version } });
             }
 
+            // (def f0e7)
             , 'readTracker': function (trackerId, version) {
                 const userId = this.userId;
                 check(trackerId, Mongo.ObjectID);
