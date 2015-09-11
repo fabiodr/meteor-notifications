@@ -18,6 +18,7 @@
     const prop = R.prop;
 
 
+
     // (def 15c7)
     const versionPattern = Match.Where(x => isValid(x, String));
 
@@ -27,13 +28,12 @@
 
 
 
-    const objectPattern =
-              (function (versionPattern) {
-                  return { '_id': Mongo.ObjectID, 'name': String, 'version': versionPattern };
-              }(versionPattern));
+    // (def 582c)
+    const objectPattern = (function (versionPattern) { return { '_id': Mongo.ObjectID, 'name': String, 'version': versionPattern }; }(versionPattern));
 
 
 
+    // (def ad11)
     const trackedObjectPattern =
               (function (versionPattern) {
                   return {
@@ -46,7 +46,7 @@
               }(versionPattern));
 
 
-
+    // (def 035a)
     const trackersPattern =
               (function (trackedObjectPattern) {
                   const maxLength = 5;
@@ -54,11 +54,17 @@
               }(trackedObjectPattern));
 
 
-
+    // (def a5cb)
     const objects = new Mongo.Collection('objects');
 
 
 
+    // (def 473a)
+    const users = Meteor.users;
+
+
+
+    // (def 8b65)
     const collections = { objects };
 
 
@@ -69,11 +75,10 @@
             'addTracker': function (tracker) {
                 const userId = this.userId;
                 check(tracker, trackedObjectPattern);
-                Meteor.users.update({ '_id': userId }, { '$push': { 'profile.trackers': tracker } });
+                users.update({ '_id': userId }, { '$push': { 'profile.trackers': tracker } });
                 return 'Tracker added!';
             }
 
-            // (def ab6f)
             , 'updateObjectVersion': function (_id, version) {
                 check(_id, Mongo.ObjectID);
                 check(version, versionPattern);
@@ -86,7 +91,7 @@
                 check(trackerId, Mongo.ObjectID);
                 check(version, versionPattern);
 
-                Meteor.users.update(
+                users.update(
                     { '_id': userId, 'profile.trackers._id': trackerId }
                     , { '$set': { 'profile.trackers.$.version': version } }
                 );
@@ -106,6 +111,8 @@
                 const maybeUser = Meteor.user();
                 if (maybeUser) {
                     Meteor.subscribe('objects');
+
+                    // (def 3198)
                     Meteor.subscribe('notifications', maybeUser.profile.trackers);
                 }
             });
@@ -191,35 +198,42 @@
         Meteor.publish('objects', () => objects.find({}));
 
 
+        // (def e8d3)
+        const isTrackerUpdated = (userId, tracker, version) => users.update({ '_id': userId, 'profile.trackers._id': tracker._id }, { '$set': { 'profile.trackers.$.updated': tracker.version !== version } });
 
-        const isTrackerUpdated = (userId, tracker, version) => Meteor.users.update({ '_id': userId, 'profile.trackers._id': tracker._id }, { '$set': { 'profile.trackers.$.updated': tracker.version !== version } });
 
-
-
+        // (def 36a5)
         Meteor.publish('notifications', function (trackers) {
             const self = this;
             const userId = self.userId;
             check(trackers, trackersPattern);
 
-            mapObjIndexed(
-                (trackers, collection) => {
-                    collections[collection]
-                        .find({ '_id': { '$in': map(t => t.id, trackers) } })
-                        .observeChanges(
-                            {
-                                'added': (id, fields) => {
-                                    const maybeTracker = find(t => EJSON.equals(t.id, id), trackers);
-                                    maybeTracker && isTrackerUpdated(userId, maybeTracker, fields.version);
+            if (userId) {
+                mapObjIndexed(
+                    (trackers, collection) => {
+                        collections[collection]
+                            .find({ '_id': { '$in': map(t => t.id, trackers) } })
+                            .observeChanges(
+                                {
+                                    'added': (id, fields) => {
+                                        const maybeTracker = find(t => EJSON.equals(t.id, id), trackers);
+                                        maybeTracker && isTrackerUpdated(userId, maybeTracker, fields.version);
+                                    }
+
+                                    , 'changed': (id, fields) => {
+                                        const maybeTracker = find(t => EJSON.equals(t.id, id), trackers);
+                                        maybeTracker && isTrackerUpdated(userId, maybeTracker, fields.version);
+                                    }
+
+                                    // deleted
                                 }
-                                , 'changed': (id, fields) => {
-                                    const maybeTracker = find(t => EJSON.equals(t.id, id), trackers);
-                                    maybeTracker && isTrackerUpdated(userId, maybeTracker, fields.version);
-                                }
-                            }
-                        );
-                }
-                , groupBy(prop('collection'), trackers)
-            );
+                            );
+                    }
+                    , groupBy(prop('collection'), trackers)
+                );
+            }
+
+            return [];
         });
     }
 
